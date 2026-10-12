@@ -1,0 +1,35 @@
+﻿# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# Temporary files
+*.log
+.cache/
+temp/
+
+# Build outputs
+build/
+dist/
+_internal/
+node_modules/
+
+# Executables and archives
+*.exe
+*.dll
+*.zip
+*.7z
+
+# Network captures
+*.pcap
+*.pcapng
+
+# Secrets
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx

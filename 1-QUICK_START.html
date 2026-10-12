@@ -1,0 +1,300 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OT Packet Lens | Quick Start</title>
+
+<style>
+:root {
+  --navy: #10263b;
+  --teal: #008d9a;
+  --text: #243448;
+  --muted: #64748b;
+  --border: #dce5eb;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: #f3f6f9;
+  color: var(--text);
+  font: 16px/1.65 "Segoe UI", Arial, sans-serif;
+}
+
+header {
+  background: var(--navy);
+  color: white;
+  padding: 45px 24px;
+}
+
+.header-content {
+  max-width: 1000px;
+  margin: auto;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 40px;
+}
+
+header h1 span { color: #64d9de; }
+header p { margin: 5px 0; color: #d3e3ed; }
+
+main {
+  max-width: 1000px;
+  margin: 30px auto;
+  padding: 0 20px 30px;
+}
+
+section {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 26px;
+  margin-bottom: 20px;
+}
+
+h2 {
+  margin-top: 0;
+  color: var(--navy);
+  font-size: 22px;
+}
+
+h3 { color: var(--teal); }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.tile {
+  background: #edf5f7;
+  border-radius: 9px;
+  padding: 18px;
+}
+
+.tile strong {
+  display: block;
+  color: var(--navy);
+  margin-bottom: 7px;
+}
+
+pre {
+  background: #14283d;
+  color: #e8f7ff;
+  padding: 18px;
+  border-radius: 9px;
+  overflow-x: auto;
+  line-height: 1.7;
+}
+
+code {
+  font-family: Consolas, "Courier New", monospace;
+}
+
+.note {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+th {
+  background: #edf5f7;
+  color: var(--navy);
+}
+
+.workflow {
+  text-align: center;
+  background: #e7f4f4;
+  color: var(--navy);
+  padding: 18px;
+  border-radius: 9px;
+  font-weight: 600;
+}
+
+.readme {
+  background: #e9f5f5;
+  border-left: 4px solid var(--teal);
+}
+
+a {
+  color: #007b88;
+  font-weight: 600;
+}
+
+footer {
+  text-align: center;
+  color: var(--muted);
+  padding: 5px 20px 30px;
+}
+
+@media (max-width: 700px) {
+  .grid { grid-template-columns: 1fr; }
+  header h1 { font-size: 32px; }
+  section { padding: 18px; }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="header-content">
+    <h1>OT <span>Packet Lens</span></h1>
+    <p><strong>Industrial Network Capture Investigation Toolkit</strong></p>
+    <p>CyberSteps · Project 9</p>
+    <p>Developed by Shekoufeh Neisarian</p>
+  </div>
+</header>
+
+<main>
+
+<section>
+  <h2>Choose How to Run</h2>
+
+  <div class="grid">
+    <div class="tile">
+      <strong>🖥️ Windows Desktop</strong>
+      Portable application with bundled runtime dependencies.
+      No separate Python or Wireshark installation.
+    </div>
+
+    <div class="tile">
+      <strong>🌐 Web Dashboard</strong>
+      Interactive local application.
+      Requires Python and Wireshark/TShark.
+    </div>
+
+    <div class="tile">
+      <strong>⌨️ Command Line</strong>
+      Analyze captures directly from PowerShell.
+      Supports automated report exports.
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>01 · Windows Portable Desktop</h2>
+
+  <p><strong>Recommended for first-time users.</strong></p>
+
+  <ol>
+    <li>
+      Open the folder
+      <strong>3-OT Packet Lens Windows Portable Toolkit</strong>.
+    </li>
+    <li>
+      Double-click <code>OT Packet Lens.exe</code>.
+    </li>
+    <li>Load a PCAP or PCAPNG capture.</li>
+    <li>Explore devices, protocols, and communications.</li>
+    <li>Export the investigation results.</li>
+  </ol>
+
+  <p class="note">
+    Keep the executable and its accompanying runtime folders together.
+    Do not move the EXE alone.
+  </p>
+</section>
+
+<section>
+  <h2>02 · Web Dashboard</h2>
+
+  <p>
+    <strong>Requirements:</strong>
+    Windows 10/11, Python 3.10+, and Wireshark/TShark.
+  </p>
+
+  <p>Open PowerShell in the main Project 9 folder:</p>
+
+  <pre><code>cd ".\4-OT Packet Lens Web App and CLI"
+python start.py</code></pre>
+
+  <p>
+    On the first run, the launcher prepares the Python environment
+    and starts the local dashboard.
+  </p>
+
+  <p>
+    Load a capture file from the top right list or from your computer to begin the analysis.
+  </p>
+</section>
+
+<section>
+  <h2>03 · Command-Line Analysis</h2>
+
+  <p>From the main Project 9 folder:</p>
+
+  <pre><code>cd ".\4-OT Packet Lens Web App and CLI"
+
+python start.py --setup-only
+
+.\.venv\Scripts\python.exe cli.py "C:\path\to\capture.pcap" --export all --output-dir reports</code></pre>
+
+  <p class="note">
+    Replace the example path with the actual PCAP or PCAPNG location.
+  </p>
+
+  <h3>Command Options</h3>
+
+  <table>
+    <tr>
+      <th>Option</th>
+      <th>Description</th>
+    </tr>
+    <tr>
+      <td><code>--setup-only</code></td>
+      <td>Prepares the Python environment</td>
+    </tr>
+    <tr>
+      <td><code>--export all</code></td>
+      <td>Generates all supported report formats</td>
+    </tr>
+    <tr>
+      <td><code>--output-dir reports</code></td>
+      <td>Saves output inside the reports directory</td>
+    </tr>
+  </table>
+</section>
+
+<section>
+  <h2>04 · Investigation Workflow</h2>
+
+  <div class="workflow">
+    Load PCAP → Explore Devices and Protocols →
+    Investigate Communications → Export Results
+  </div>
+</section>
+
+<section class="readme">
+  <h2>Further Information</h2>
+  <p>
+    For a complete project overview, detailed features,
+    installation instructions, supported protocols,
+    screenshots, and known limitations, please refer to
+    <a href="2-README.html">2-README.html</a>.
+  </p>
+</section>
+
+</main>
+
+<footer>
+  OT Packet Lens · CyberSteps Project 9
+</footer>
+
+</body>
+</html>

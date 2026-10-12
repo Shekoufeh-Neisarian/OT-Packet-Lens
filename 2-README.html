@@ -1,0 +1,934 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>OT Packet Lens | Project Documentation</title>
+
+<style>
+:root {
+  --navy: #10263b;
+  --navy-light: #1d3c53;
+  --teal: #008d9a;
+  --teal-light: #e7f5f5;
+  --text: #243448;
+  --muted: #63758a;
+  --line: #dbe5ec;
+  --background: #f3f6f9;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--text);
+  font: 16px/1.65 "Segoe UI", Arial, sans-serif;
+}
+
+header {
+  background: linear-gradient(120deg, #0b1f31, #183f55);
+  color: #fff;
+  padding: 52px 25px 46px;
+}
+
+.header-inner {
+  max-width: 1050px;
+  margin: auto;
+}
+
+.eyebrow {
+  color: #80dce0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+header h1 {
+  font-size: clamp(36px, 5vw, 54px);
+  margin: 10px 0 8px;
+  line-height: 1.15;
+}
+
+header h1 span { color: #62d5dc; }
+
+.subtitle {
+  color: #d5e5ef;
+  font-size: 19px;
+  margin: 6px 0;
+}
+
+.author {
+  color: #c5d7e4;
+  font-size: 14px;
+  margin-top: 22px;
+}
+
+nav {
+  background: white;
+  border-bottom: 1px solid var(--line);
+  padding: 13px 24px;
+}
+
+.nav-inner {
+  max-width: 1050px;
+  margin: auto;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+nav a {
+  color: var(--navy);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+nav a:hover { color: var(--teal); }
+
+main {
+  max-width: 1050px;
+  margin: 30px auto;
+  padding: 0 22px 35px;
+}
+
+section {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 28px;
+  margin-bottom: 22px;
+}
+
+h2 {
+  margin: 0 0 18px;
+  font-size: 24px;
+  color: var(--navy);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 12px;
+}
+
+h3 {
+  margin: 25px 0 12px;
+  font-size: 18px;
+  color: var(--teal);
+}
+
+p { margin: 12px 0; }
+
+a { color: #007d8a; }
+
+strong { color: var(--navy); }
+
+ul, ol { padding-left: 25px; }
+li { margin: 7px 0; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.card {
+  background: #eef5f8;
+  border: 1px solid #dae7ee;
+  border-radius: 10px;
+  padding: 19px;
+}
+
+.card h3 {
+  margin: 0 0 9px;
+  color: var(--navy);
+}
+
+.card p {
+  font-size: 14px;
+  color: #40566b;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 17px 0;
+  font-size: 14px;
+}
+
+th, td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  background: #edf5f7;
+  color: var(--navy);
+  font-weight: 700;
+}
+
+tr:hover td { background: #fafcfd; }
+
+.table-wrap { overflow-x: auto; }
+
+pre {
+  background: #13293d;
+  color: #e8f7ff;
+  padding: 19px;
+  border-radius: 9px;
+  overflow-x: auto;
+  font: 14px/1.7 Consolas, "Courier New", monospace;
+}
+
+code {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.94em;
+}
+
+:not(pre) > code {
+  background: #edf2f5;
+  padding: 2px 5px;
+  border-radius: 4px;
+}
+
+.note {
+  padding: 15px 18px;
+  border-left: 4px solid var(--teal);
+  background: var(--teal-light);
+  border-radius: 0 8px 8px 0;
+  margin: 18px 0;
+}
+
+.note p { margin: 4px 0; }
+
+.screenshot {
+  margin: 22px 0;
+}
+
+.screenshot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #e9eef2;
+}
+
+figcaption {
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+  margin-top: 9px;
+}
+
+.workflow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin: 24px 0;
+}
+
+.step {
+  padding: 18px 12px;
+  border-radius: 9px;
+  text-align: center;
+  background: #e9f4f5;
+  border: 1px solid #cfe7e9;
+}
+
+.step-number {
+  display: block;
+  color: var(--teal);
+  font-weight: 800;
+  font-size: 24px;
+}
+
+.step strong { display: block; }
+
+.report-link {
+  display: block;
+  text-decoration: none;
+  font-weight: 650;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  margin: 8px 0;
+}
+
+.report-link:hover {
+  background: var(--teal-light);
+  border-color: #9bd4d8;
+}
+
+.tag {
+  display: inline-block;
+  background: #e4f2f4;
+  color: #126674;
+  padding: 4px 11px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  margin: 3px;
+}
+
+footer {
+  text-align: center;
+  color: var(--muted);
+  padding: 20px;
+  font-size: 14px;
+}
+
+@media (max-width: 750px) {
+  .grid { grid-template-columns: 1fr; }
+  .workflow { grid-template-columns: repeat(2, 1fr); }
+  section { padding: 19px; }
+}
+
+@media print {
+  body { background: white; }
+  section { break-inside: avoid; border-color: #ddd; }
+  header { print-color-adjust: exact; }
+  nav { display: none; }
+  a { color: var(--navy); }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="eyebrow">CyberSteps · Project 9</div>
+    <h1>OT <span>Packet Lens</span></h1>
+    <p class="subtitle">
+      Industrial Network Capture Investigation Toolkit
+    </p>
+    <p class="subtitle">
+      Analyze · Visualize · Investigate · Report
+    </p>
+    <div class="author">
+      Developed by <strong style="color:white">
+      Shekoufeh Neisarian</strong>
+    </div>
+  </div>
+</header>
+
+<nav>
+  <div class="nav-inner">
+    <a href="#overview">Overview</a>
+    <a href="#features">Features</a>
+    <a href="#installation">Installation</a>
+    <a href="#protocols">Protocols</a>
+    <a href="#investigation">Investigation</a>
+    <a href="#limitations">Limitations</a>
+    <a href="1-QUICK_START.html">Quick Start ↗</a>
+  </div>
+</nav>
+
+<main>
+
+<section id="overview">
+  <h2>01 · Project Overview</h2>
+
+  <p>
+    <strong>OT Packet Lens</strong> is a Python-based network
+    investigation toolkit designed to analyze industrial
+    traffic captures in PCAP and PCAPNG formats.
+  </p>
+
+  <p>
+    It identifies network endpoints, industrial protocols,
+    communication patterns, potential OT devices, and
+    operational or security-related findings.
+  </p>
+
+  <p>
+    The application combines
+    <strong>Wireshark/TShark protocol dissection</strong>
+    with Python-based analysis, device profiling,
+    and interactive visualizations.
+  </p>
+
+  <div class="grid">
+    <div class="card">
+      <h3>🖥️ Windows Desktop</h3>
+      <p>
+        Portable native PySide6 application with bundled
+        runtime dependencies.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>🌐 Web Dashboard</h3>
+      <p>
+        Interactive local dashboard for exploring
+        protocols, devices, and conversations.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>⌨️ Command Line</h3>
+      <p>
+        Scriptable PCAP analysis with configurable
+        export formats and output directories.
+      </p>
+    </div>
+  </div>
+
+  <figure class="screenshot">
+    <img
+      src="4-OT Packet Lens Web App and CLI/docs/assets/dashboard-welcome.png"
+      alt="OT Packet Lens dashboard welcome screen">
+    <figcaption>
+      OT Packet Lens — interactive dashboard.
+    </figcaption>
+  </figure>
+</section>
+
+<section id="features">
+  <h2>02 · Features</h2>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Network Discovery</h3>
+      <p>
+        Identifies observed IP endpoints, MAC addresses,
+        vendor information, and communicating partners.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>Industrial Protocols</h3>
+      <p>
+        Extracts supported protocol identifiers,
+        function codes, requests, and responses.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>Device Profiling</h3>
+      <p>
+        Infers potential PLC, HMI, SCADA, and engineering
+        workstation roles with supporting evidence.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>Communication Analysis</h3>
+      <p>
+        Shows source/destination relationships,
+        ports, traffic volumes, and conversations.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>Security Investigation</h3>
+      <p>
+        Identifies unusual communication patterns
+        and industrial operations requiring review.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>Report Generation</h3>
+      <p>
+        Exports HTML, JSON, Markdown, and CSV
+        results for further investigation.
+      </p>
+    </div>
+  </div>
+
+  <p>
+    <span class="tag">PCAP / PCAPNG</span>
+    <span class="tag">Industrial Protocols</span>
+    <span class="tag">OT Asset Discovery</span>
+    <span class="tag">Traffic Flows</span>
+    <span class="tag">Report Export</span>
+  </p>
+</section>
+
+<section id="structure">
+  <h2>03 · Project Structure</h2>
+
+  <pre><code>Project 9 Submission/
+│
+├── 1-QUICK_START.html
+├── 2-README.html
+│
+├── 3-OT Packet Lens Windows Portable Toolkit/
+│   ├── OT Packet Lens.exe
+│   ├── _internal/
+│   └── Wireshark/
+│
+├── 4-OT Packet Lens Web App and CLI/
+    ├── start.py
+    ├── run.py
+    ├── cli.py
+    ├── desktop.py
+    ├── analyzer/
+    ├── web/
+    ├── tests/
+    ├── requirements.txt
+    └── docs/
+        └── assets/
+
+</code></pre>
+
+  <div class="note">
+    <p>
+      <strong>Directory layout:</strong>
+      The Windows portable application and Python source are
+      provided separately.
+    </p>
+    <p>
+      If the portable desktop folder contains a ZIP,
+      extract that ZIP before launching the executable.
+      Keep all accompanying runtime files together.
+    </p>
+  </div>
+</section>
+
+<section id="installation">
+  <h2>04 · Installation and Usage</h2>
+
+  <h3>Option A — Windows Portable Desktop</h3>
+
+  <p>
+    <strong>Recommended for first-time users.</strong>
+    The portable application can run without separately
+    installing Python or Wireshark.
+  </p>
+
+  <ol>
+    <li>
+      Open
+      <code>3-OT Packet Lens Windows Portable Toolkit</code>.
+    </li>
+    <li>
+      If necessary, extract the desktop distribution ZIP.
+    </li>
+    <li>
+      Launch <strong>OT Packet Lens.exe</strong>.
+    </li>
+    <li>
+      Select a PCAP or PCAPNG file.
+    </li>
+    <li>
+      Explore the results and export reports.
+    </li>
+  </ol>
+
+  <div class="note">
+    <strong>Important:</strong>
+    Keep the EXE, <code>_internal</code> directory,
+    and bundled Wireshark runtime in their original
+    relative locations.
+  </div>
+
+  <h3>Option B — Web Dashboard</h3>
+
+  <p><strong>Requirements:</strong></p>
+
+  <ul>
+    <li>Windows 10/11</li>
+    <li>Python 3.10 or newer</li>
+    <li>Wireshark with TShark installed</li>
+    <li>Internet connection for first-time dependency setup</li>
+  </ul>
+
+  <p>
+    Open PowerShell in the outer project folder:
+  </p>
+
+  <pre><code>cd ".\4-OT Packet Lens Web App and CLI"
+python start.py</code></pre>
+
+  <p>
+    On first launch, the application prepares a private
+    Python environment and opens the local web dashboard.
+    Capture analysis starts when a file is selected.
+  </p>
+
+  <h3>Option C — Command-Line Interface</h3>
+
+  <p>
+    Open PowerShell in the outer project directory:
+  </p>
+
+  <pre><code>cd ".\4-OT Packet Lens Web App and CLI"
+
+python start.py --setup-only
+
+.\.venv\Scripts\python.exe cli.py "C:\path\to\capture.pcap" --export all --output-dir reports</code></pre>
+
+  <p>
+    Replace the example capture path with a valid
+    PCAP or PCAPNG file on your computer.
+  </p>
+
+  <div class="table-wrap">
+    <table>
+      <tr>
+        <th>Command / Argument</th>
+        <th>Description</th>
+      </tr>
+      <tr>
+        <td><code>start.py --setup-only</code></td>
+        <td>Prepares the Python environment.</td>
+      </tr>
+      <tr>
+        <td><code>cli.py</code></td>
+        <td>Runs the command-line analyzer.</td>
+      </tr>
+      <tr>
+        <td><code>capture.pcap</code></td>
+        <td>Path to the input network capture.</td>
+      </tr>
+      <tr>
+        <td><code>--export all</code></td>
+        <td>Exports all supported report formats.</td>
+      </tr>
+      <tr>
+        <td><code>--output-dir reports</code></td>
+        <td>Specifies the output folder.</td>
+      </tr>
+    </table>
+  </div>
+
+  <p class="note">
+    The original Mystery captures are available
+    from the instructor and do not need to be
+    bundled with this submission.
+  </p>
+</section>
+
+<section id="protocols">
+  <h2>05 · Supported Protocols</h2>
+
+  <div class="table-wrap">
+    <table>
+      <tr>
+        <th>Protocol</th>
+        <th>Analysis Coverage</th>
+      </tr>
+      <tr>
+        <td><strong>Modbus/TCP</strong></td>
+        <td>
+          Function codes, unit identifiers,
+          exception fields and traffic statistics.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Siemens S7comm</strong></td>
+        <td>
+          Read Var, Write Var, requests,
+          responses and selected operations.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>EtherNet/IP / CIP</strong></td>
+        <td>
+          Selected encapsulation commands
+          and CIP service information.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>DNP3</strong></td>
+        <td>Selected function identifiers.</td>
+      </tr>
+      <tr>
+        <td><strong>IEC 60870-5-104</strong></td>
+        <td>Selected control and message-format fields.</td>
+      </tr>
+      <tr>
+        <td><strong>BACnet</strong></td>
+        <td>Selected messages and protocol fields.</td>
+      </tr>
+      <tr>
+        <td><strong>OPC UA</strong></td>
+        <td>Partial recognition and selected fields.</td>
+      </tr>
+      <tr>
+        <td><strong>ARP, TCP, UDP, ICMP</strong></td>
+        <td>Network and transport-layer information.</td>
+      </tr>
+      <tr>
+        <td><strong>DNS, DHCP, HTTP, TLS</strong></td>
+        <td>Selected IT-network indicators.</td>
+      </tr>
+    </table>
+  </div>
+
+  <p class="note">
+    Protocol support varies by capture contents and
+    TShark decoding capabilities. A service port
+    alone does not prove that the application
+    protocol was successfully decoded.
+  </p>
+</section>
+
+<section id="workflow">
+  <h2>06 · Investigation Workflow</h2>
+
+  <div class="workflow">
+    <div class="step">
+      <span class="step-number">01</span>
+      <strong>Load</strong>
+      Select a PCAP
+    </div>
+
+    <div class="step">
+      <span class="step-number">02</span>
+      <strong>Explore</strong>
+      Review traffic
+    </div>
+
+    <div class="step">
+      <span class="step-number">03</span>
+      <strong>Investigate</strong>
+      Inspect evidence
+    </div>
+
+    <div class="step">
+      <span class="step-number">04</span>
+      <strong>Export</strong>
+      Save reports
+    </div>
+  </div>
+
+  <figure class="screenshot">
+    <img
+      src="4-OT Packet Lens Web App and CLI/docs/assets/quick-tour.png"
+      alt="OT Packet Lens guided investigation workflow">
+    <figcaption>
+      Guided investigation workflow in the application.
+    </figcaption>
+  </figure>
+</section>
+
+<section id="investigation">
+  <h2>07 · Mystery PCAP Investigation</h2>
+
+  <p>
+    The supplied industrial network captures
+    <strong>Mystery1</strong>,
+    <strong>Mystery2</strong>, and
+    <strong>Mystery3</strong>
+    are analyzed using OT Packet Lens.
+  </p>
+
+  <div class="table-wrap">
+    <table>
+      <tr>
+        <th>Measurement</th>
+        <th>Mystery 1</th>
+        <th>Mystery 2</th>
+        <th>Mystery 3</th>
+      </tr>
+      <tr>
+        <td>Captured frames</td>
+        <td>2,274,747</td>
+        <td>1,253,100</td>
+        <td>246,137</td>
+      </tr>
+      <tr>
+        <td>Discovered IP endpoints</td>
+        <td>104</td>
+        <td>50</td>
+        <td>13</td>
+      </tr>
+      <tr>
+        <td>Candidate OT assets</td>
+        <td>27</td>
+        <td>24</td>
+        <td>3</td>
+      </tr>
+      <tr>
+        <td>S7comm-classified frames</td>
+        <td>106,421</td>
+        <td>172,783</td>
+        <td>47,464</td>
+      </tr>
+      <tr>
+        <td>Modbus/TCP-classified frames</td>
+        <td>99,528</td>
+        <td>19</td>
+        <td>0</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="note">
+    <strong>Counting note:</strong>
+    A discovered IP endpoint does not necessarily
+    represent a unique physical device.
+    Candidate OT roles are inferred from observed traffic.
+  </div>
+
+  <h3>Mystery 1 — Industrial Protocol Activity</h3>
+
+  <p>
+    Mystery 1 contains substantial Modbus/TCP and S7comm
+    traffic, together with smaller quantities of other
+    identified industrial protocols.
+  </p>
+
+  <p>
+    Numerous Modbus exception-code occurrences are
+    identified on industrial endpoints. These may be
+    associated with configuration problems, unsupported
+    requests, operational faults, or other activity
+    requiring investigation.
+  </p>
+
+  <h3>Mystery 2 — S7comm and Management Traffic</h3>
+
+  <p>
+    S7comm is the dominant identified industrial protocol.
+    The capture also includes communication involving
+    TCP ports commonly used for Telnet and HTTP.
+  </p>
+
+  <p>
+    These observations warrant investigation of
+    management-service exposure, but do not independently
+    establish that credentials were transmitted
+    or that unauthorized access occurred.
+  </p>
+
+  <h3>Mystery 3 — S7 Read/Write Activity</h3>
+
+  <p>
+    Three recurring endpoints illustrate the principal
+    industrial communication relationship.
+  </p>
+
+  <div class="table-wrap">
+    <table>
+      <tr>
+        <th>IP Address</th>
+        <th>Suspected Role</th>
+        <th>Observed Behavior</th>
+      </tr>
+      <tr>
+        <td><code>10.10.10.10</code></td>
+        <td>PLC / S7 server candidate</td>
+        <td>Responds to S7 requests.</td>
+      </tr>
+      <tr>
+        <td><code>10.10.10.20</code></td>
+        <td>HMI / monitoring candidate</td>
+        <td>Initiates Read Var requests.</td>
+      </tr>
+      <tr>
+        <td><code>10.10.10.30</code></td>
+        <td>Engineering workstation candidate</td>
+        <td>Initiates Write Var requests.</td>
+      </tr>
+    </table>
+  </div>
+
+  <p>
+    The investigation identifies
+    <strong>18 S7 Write Var requests</strong>
+    from the engineering-client candidate, with
+    18 corresponding protocol responses reporting
+    successful item status.
+  </p>
+
+  <p>
+    Repeated TCP connection establishment is also
+    observed toward a single S7 service on
+    <strong>TCP port 102</strong>.
+    This is not sufficient evidence of a multiport scan.
+  </p>
+
+  <p>
+    Suspected device roles, authorization, and physical
+    process consequences remain uncertain without
+    additional operational information.
+  </p>
+</section>
+
+<section id="limitations">
+  <h2>09 · Known Limitations</h2>
+
+  <ul>
+    <li>
+      IP endpoint counts do not always represent
+      distinct physical devices.
+    </li>
+
+    <li>
+      MAC vendor information does not independently
+      establish the identity or role of equipment.
+    </li>
+
+    <li>
+      PLC, HMI, SCADA, and engineering workstation
+      classifications are based on inferred behavior.
+    </li>
+
+    <li>
+      Protocol field occurrences, captured frames,
+      and unique requests represent different counts.
+    </li>
+
+    <li>
+      Protocol interpretation depends on available
+      packet data and TShark dissection.
+    </li>
+
+    <li>
+      Encrypted payload contents cannot be examined
+      without appropriate decryption.
+    </li>
+
+    <li>
+      Successful industrial protocol acknowledgements
+      do not prove lasting physical process changes.
+    </li>
+
+    <li>
+      Unusual traffic patterns alone cannot establish
+      malicious intent or unauthorized behavior.
+    </li>
+  </ul>
+</section>
+
+<section>
+  <h2>10 · Quick Start</h2>
+
+  <p>
+    For shorter installation and launch instructions,
+    open the accompanying Quick Start guide.
+  </p>
+
+  <a class="report-link" href="1-QUICK_START.html">
+    ↗ Open 1-QUICK_START.html
+  </a>
+</section>
+
+<section>
+  <h2>Author</h2>
+
+  <p>
+    <strong>Shekoufeh Neisarian</strong><br>
+    CyberSteps · Project 9
+  </p>
+</section>
+
+</main>
+
+<footer>
+  OT Packet Lens · Industrial Network Capture Investigation Toolkit
+</footer>
+
+</body>
+</html>
