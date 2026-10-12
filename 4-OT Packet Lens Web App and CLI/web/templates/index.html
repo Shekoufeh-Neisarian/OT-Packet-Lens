@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OT Packet Lens — ICS/SCADA Network Traffic Analyzer & Asset Profiler</title>
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%E2%9A%A1</text></svg>">
+  <meta name="description"
+    content="Industrial Control System (ICS) network traffic analyzer. Upload PCAP captures to identify devices, protocols, communication patterns, and security anomalies in OT networks.">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <script src="/static/vendor/chart.umd.js"></script>
+</head>
+
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <a href="#" class="brand" onclick="location.reload(); return false;">
+      <div class="brand-icon">⚡</div>
+      <div class="brand-text">
+        <h1>OT Packet Lens <span class="brand-tag">ICS/SCADA Analyzer</span></h1>
+        <p class="developer-credit">Developed by <strong>Shekoufeh Neisarian</strong></p>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <select id="sampleSelect" class="sample-select" title="Choose a preloaded capture">
+        <option value="">-- Quick Load Sample Capture --</option>
+      </select>
+      <button id="tourOpen" class="tour-nav-btn" type="button" aria-haspopup="dialog" aria-controls="tourOverlay">ⓘ
+        &nbsp; Quick tour</button>
+      <button id="themeToggle" class="theme-toggle" title="Toggle Dark/Light Mode">☀</button>
+    </div>
+  </header>
+
+  <!-- Main Application Body -->
+  <main class="main-content">
+
+    <!-- Lightweight first-run wayfinding; hidden once an analysis report appears. -->
+    <section class="welcome-guide" id="welcomeGuide" aria-label="Getting started">
+      <div class="welcome-copy">
+        <span class="welcome-eyebrow">YOUR WORKSPACE / GET STARTED</span>
+        <h2>See the network behind the packets.</h2>
+        <p>Four steps from a capture to evidence you can inspect and export.</p>
+        <div class="welcome-actions">
+          <button type="button" class="welcome-primary" id="tourWelcomeOpen">Explore the 4-step tour <span
+              aria-hidden="true">↗</span></button>
+          <button type="button" class="welcome-secondary" id="tourChooseSample">Try a built-in capture <span
+              aria-hidden="true">→</span></button>
+        </div>
+      </div>
+      <div class="welcome-path" aria-label="Four steps">
+        <div><span>01</span><strong>LOAD</strong><small>Choose a PCAP</small></div>
+        <div><span>02</span><strong>OVERVIEW</strong><small>Read the summary</small></div>
+        <div><span>03</span><strong>INVESTIGATE</strong><small>Trace the evidence</small></div>
+        <div><span>04</span><strong>EXPORT</strong><small>Share the report</small></div>
+      </div>
+    </section>
+
+    <!-- Upload & File Dropzone -->
+    <section class="dropzone-container">
+      <div id="dropzone" class="dropzone" role="button" tabindex="0" aria-label="Upload capture">
+        <div class="dropzone-icon" aria-hidden="true"><svg width="54" height="44" viewBox="0 0 54 44" fill="none"
+            stroke="currentColor" stroke-width="2">
+            <path d="M3 9h17l5 6h26v25H3z" />
+            <path d="M3 15V4h18l5 5h22v6" />
+          </svg></div>
+        <div class="dropzone-text">
+          <h3>Drag and drop industrial .pcap / .pcapng captures here</h3>
+          <p>or click to select a file from your computer — supports Modbus, S7comm, CIP/EtherNet-IP, DNP3, BACnet,
+            IEC-104, OPC UA</p>
+        </div>
+        <input type="file" id="fileInput" accept=".pcap,.pcapng,.cap" style="display: none;">
+      </div>
+    </section>
+
+    <!-- Live Analysis Progress Card -->
+    <section id="progressBox" class="progress-container">
+      <div class="progress-header">
+        <span id="progressMsg" style="font-weight: 600; color: var(--cyan);">Analyzing capture stream...</span>
+        <span id="progressCount" style="color: var(--text-muted); font-size: 13px;">0 packets</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div id="progressFill" class="progress-bar-fill"></div>
+      </div>
+    </section>
+
+    <!-- Analysis Dashboard (Visible once capture is analyzed) -->
+    <div id="reportDashboard" style="display: none;">
+
+      <!-- KPI Executive Metrics -->
+      <section class="kpi-row">
+        <div class="kpi-card stagger-in" style="animation-delay: 0s;">
+          <div class="kpi-label">Capture File</div>
+          <div id="kpiFilename" class="kpi-value" style="font-size: 15px; word-break: break-all;">-</div>
+          <div id="kpiDuration" class="kpi-sub">0m 0s duration</div>
+        </div>
+        <div class="kpi-card stagger-in" style="animation-delay: 0.05s;">
+          <div class="kpi-label">Total Packets</div>
+          <div id="kpiPackets" class="kpi-value">0</div>
+          <div id="kpiThroughput" class="kpi-sub">Capture avg 0 pkt/s · Analysis 0 pkt/s</div>
+        </div>
+        <div class="kpi-card stagger-in" style="animation-delay: 0.1s;">
+          <div class="kpi-label">Transferred Data</div>
+          <div id="kpiVolume" class="kpi-value">0 MB</div>
+          <div class="kpi-sub">Captured frame bytes (MiB)</div>
+        </div>
+        <div class="kpi-card stagger-in" style="animation-delay: 0.15s;">
+          <div class="kpi-label">Discovered Assets</div>
+          <div id="kpiDevices" class="kpi-value">0</div>
+          <div class="kpi-sub">IP endpoint entries</div>
+        </div>
+        <div class="kpi-card stagger-in" style="animation-delay: 0.2s; border-color: rgba(6, 182, 212, 0.4);">
+          <div class="kpi-label" style="color: var(--cyan);">Suspected OT Assets</div>
+          <div id="kpiOtAssets" class="kpi-value" style="color: var(--cyan);">0</div>
+          <div class="kpi-sub">PLCs, HMIs, EWS, SCADA</div>
+        </div>
+      </section>
+
+      <!-- Compact methodological explanation: visible evidence labels; details on demand. -->
+      <div class="panel-card capture-summary" style="margin-bottom:20px">
+        <div class="capture-summary-header">
+          <div><strong>Capture window</strong> <span id="captureStart"></span> → <span id="captureEnd"></span></div>
+          <span class="capture-engine-label">Wireshark / TShark decoding</span>
+        </div>
+        <div class="capture-evidence-tags" aria-label="Evidence classification">
+          <span>Observed · recorded frames and endpoints</span>
+          <span>Derived · decoded protocols and statistics</span>
+          <span>Inferred · suspected devices and activity</span>
+        </div>
+        <details class="capture-methodology">
+          <summary>Analysis methodology and interpretation limits</summary>
+          <p><strong>Observed:</strong> packet bytes, timestamps, reported IP addresses, transport ports and
+            captured-frame lengths. A claimed identity is not authenticated.</p>
+          <p><strong>Derived:</strong> TShark protocol dissections, rates, function-code occurrences and MAC/OUI lookup.
+            Wireshark display-filter counts can overlap. In particular, inner UDP headers inside ICMP error packets also
+            satisfy the <code>udp</code> display filter, while outer transport totals count only the outer protocol.</p>
+          <p><strong>Inferred:</strong> suspected PLC/HMI/EWS roles, scan hypotheses, alert severity and write success.
+            These need operational confirmation; never treat them as proven incidents or physical identities.</p>
+        </details>
+      </div>
+      <!-- Evidence quality and Wireshark comparison use explicit counting units. -->
+      <details class="panel-card decoder-details" id="dissectionQualityPanel" style="margin-bottom:20px">
+        <summary>Decoding audit <span class="decoder-audit-note">TShark frame and field provenance</span></summary>
+        <p id="dissectionQualityMessage" style="line-height:1.55"></p>
+        <div id="wiresharkFilterCounts" style="display:none">
+          <p style="font-size:13px; color:var(--text-muted)">TShark protocol-stack presence: each value counts frames
+            whose decoded frame.protocols contains that protocol (use independent -Y validation for exact GUI-filter
+            parity), not necessarily distinct messages. A frame may match both <code>tcp</code> and <code>modbus</code>.
+          </p>
+          <div id="wiresharkCountsTable" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+        </div>
+      </details>
+      <!-- Operational & Security Alerts -->
+      <section id="anomaliesBox" style="display: none;"></section>
+
+      <!-- Navigation Tabs -->
+      <nav class="tabs-nav">
+        <button class="tab-btn active" data-tab="tabOverview"> Overview</button>
+        <button class="tab-btn" data-tab="tabDevices"> Device Inventory</button>
+        <button class="tab-btn" data-tab="tabInsights"> Protocol Insights</button>
+        <button class="tab-btn" data-tab="tabTopology"> Topology & Comms</button>
+        <button class="tab-btn" data-tab="tabMystery"> Capture Investigation</button>
+        <button class="tab-btn" data-tab="tabExport"> Export Center</button>
+      </nav>
+
+      <!-- TAB 1: Overview -->
+      <div id="tabOverview" class="tab-pane active">
+        <!-- Charts Row -->
+        <div class="chart-row">
+          <div class="chart-container">
+            <h3>Protocol Distribution</h3>
+            <div class="chart-canvas-wrap">
+              <canvas id="chartProtoDoughnut"></canvas>
+            </div>
+          </div>
+          <div class="chart-container">
+            <h3>Top Protocols by Packet Count</h3>
+            <div class="chart-canvas-wrap">
+              <canvas id="chartProtoBar"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Device Role Distribution -->
+        <div class="chart-row">
+          <div class="chart-container">
+            <h3>Asset Role Distribution</h3>
+            <div class="chart-canvas-wrap">
+              <canvas id="chartRolePie"></canvas>
+            </div>
+          </div>
+          <div class="chart-container">
+            <h3>Top Talkers by Endpoint Traffic (MiB)</h3>
+            <p style="font-size:12px;color:var(--text-muted)">Per-IP sent + received captured bytes; totals overlap
+              across communicating endpoints.</p>
+            <div class="chart-canvas-wrap">
+              <canvas id="chartTopTalkers"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-card" style="margin-bottom: 24px;">
+          <h3>Detected Network &amp; Industrial Protocols</h3>
+          <p style="font-size: 12px; color: var(--text-muted); margin: 0 0 10px;">Each packet is classified into exactly
+            one protocol, so shares add up to at most 100%.</p>
+          <div id="protocolChips" class="proto-chips"></div>
+          <div id="transportChipsWrap" style="display: none; margin-top: 16px;">
+            <h3 style="font-size: 14px;">Outermost Transport / Link Layer Totals</h3>
+            <div id="transportChips" class="proto-chips"></div>
+          </div>
+        </div>
+
+        <div class="overview-bottom-grid">
+          <section class="panel-card">
+            <div class="visual-section-head">
+              <h3>Suspected OT asset activity</h3><span class="evidence-flag">INFERRED ROLE</span>
+            </div>
+            <p class="visual-subtitle">Top capture endpoints, ranked by captured endpoint bytes. Roles require
+              independent confirmation.</p>
+            <div id="assetActivityVisual" class="asset-activity-list"></div>
+          </section>
+          <section class="panel-card">
+            <div class="visual-section-head">
+              <h3>Investigation workflow</h3><span class="evidence-flag">REVIEW</span>
+            </div>
+            <div class="workflow-steps">
+              <button type="button" data-target-tab="tabDevices"><span
+                  class="workflow-number">01</span><span><strong>Inspect assets</strong><small>View IPs, ports and
+                    device evidence</small></span><span aria-hidden="true">→</span></button>
+              <button type="button" data-target-tab="tabTopology"><span
+                  class="workflow-number">02</span><span><strong>Trace communication</strong><small>Relationships and
+                    capture flows</small></span><span aria-hidden="true">→</span></button>
+              <button type="button" data-target-tab="tabMystery"><span
+                  class="workflow-number">03</span><span><strong>Review findings</strong><small>Inspect heuristic alerts
+                    and context</small></span><span aria-hidden="true">→</span></button>
+              <button type="button" data-target-tab="tabExport"><span
+                  class="workflow-number">04</span><span><strong>Export evidence</strong><small>Standalone HTML and
+                    machine data</small></span><span aria-hidden="true">→</span></button>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <!-- TAB 2: Device Inventory -->
+      <div id="tabDevices" class="tab-pane">
+        <div
+          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+          <input type="text" id="deviceSearch" class="search-input" placeholder=" Search by IP, MAC, Vendor...">
+          <select id="roleFilter" class="sample-select">
+            <option value="">All Suspected Roles</option>
+            <option value="PLC">PLC (Controllers)</option>
+            <option value="HMI">HMI (Operator Interfaces)</option>
+            <option value="Engineering Workstation">Engineering Workstations</option>
+            <option value="SCADA Server">SCADA Servers</option>
+            <option value="Network Device">Network Devices (Routers/Switches)</option>
+            <option value="Server">Servers</option>
+            <option value="Workstation">Workstations / Clients</option>
+            <option value="Unknown">Unknown</option>
+          </select>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>IP Address</th>
+                <th>MAC Address</th>
+                <th>MAC Vendor</th>
+                <th>Suspected Role</th>
+                <th>Confidence</th>
+                <th>Total Packets</th>
+                <th>Data Volume</th>
+                <th>Server Ports</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="deviceTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB 3: Protocol Insights -->
+      <div id="tabInsights" class="tab-pane">
+        <div class="section-intro">
+          <h2>Protocol operations</h2>
+          <p>Compare decoded field occurrences by protocol; the width of each bar is relative to the highest value
+            within that protocol, not total network traffic.</p>
+        </div>
+        <div id="insightsGrid" class="insight-visual-grid"></div>
+      </div>
+
+      <!-- TAB 4: Network Topology & Communications -->
+      <div id="tabTopology" class="tab-pane">
+        <div class="topology-container">
+          <div class="topology-toolbar">
+            <h3 style="font-size: 15px; color: var(--cyan);">Interactive Industrial Network Topology Map</h3>
+            <span style="font-size: 12px; color: var(--text-muted);">Drag nodes to reorganize | Click node for asset
+              details</span>
+          </div>
+          <div class="canvas-wrapper">
+            <canvas id="topologyCanvas"></canvas>
+          </div>
+        </div>
+
+        <div style="margin-top: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <h3>Host-to-Host Communication Matrix & Sessions</h3>
+            <input type="text" id="flowSearch" class="search-input" placeholder=" Search flows by IP or port...">
+          </div>
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Client Endpoint</th>
+                  <th>Server Endpoint</th>
+                  <th>Protocol</th>
+                  <th>Packets</th>
+                  <th>Volume</th>
+                  <th>First Seen</th>
+                  <th>Last Seen</th>
+                  <th>Likely Requester</th>
+                  <th>Likely Responder</th>
+                </tr>
+              </thead>
+              <tbody id="flowTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Findings are generated from the currently loaded capture. -->
+      <div id="tabMystery" class="tab-pane">
+        <div class="section-intro">
+          <h2>Capture investigation</h2>
+          <p>Operational overview with evidence strength and traceable endpoints. Review findings before drawing
+            conclusions.</p>
+        </div>
+        <div id="captureInvestigation" class="investigation-layout"></div>
+      </div>
+
+      <!-- TAB 6: Export Center -->
+      <div id="tabExport" class="tab-pane">
+        <div class="panel-card">
+          <h3>Export Analysis Reports</h3>
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
+            Export the complete forensic findings, device inventory, protocol insights, and flow matrices in your
+            preferred format:
+          </p>
+          <div style="display: flex; gap: 14px; flex-wrap: wrap;">
+            <a id="btnExportHtml" href="#" class="btn btn-primary" download> Standalone HTML Report</a>
+            <a id="btnExportMd" href="#" class="btn btn-outline" download> Markdown Report</a>
+            <a id="btnExportJson" href="#" class="btn btn-outline" download> Full JSON Data</a>
+            <a id="btnExportCsvDevices" href="#" class="btn btn-outline" download> Devices CSV</a>
+            <a id="btnExportCsvFlows" href="#" class="btn btn-outline" download> Communications CSV</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Optional non-intrusive product guide; no automatic capture processing. -->
+  <div id="tourOverlay" class="tour-overlay" hidden>
+    <section id="tourDialog" class="tour-dialog" role="dialog" aria-modal="true" aria-labelledby="tourTitle"
+      aria-describedby="tourDescription" tabindex="-1">
+      <div class="tour-dialog-header">
+        <span class="tour-overline">OT PACKET LENS / PRODUCT GUIDE</span>
+        <button type="button" id="tourClose" class="tour-close" aria-label="Close walkthrough">×</button>
+      </div>
+      <div class="tour-step-track" id="tourStepTrack" aria-label="Walkthrough progress"></div>
+      <div class="tour-stage">
+        <div class="tour-illustration" aria-hidden="true">
+          <span id="tourGlyph">⇪</span>
+          <span class="tour-illustration-tag" id="tourStepTag">STEP 01 / 04</span>
+        </div>
+        <div class="tour-stage-copy">
+          <p class="tour-kicker" id="tourKicker">01 / Start here</p>
+          <h2 id="tourTitle">Load a capture</h2>
+          <p id="tourDescription">Upload a PCAP/PCAPNG file, or choose a built-in capture from the top-right menu.</p>
+          <div class="tour-tip" id="tourTip">Choose one capture at a time. Analysis starts only after you select one.
+          </div>
+        </div>
+      </div>
+      <div class="tour-controls">
+        <button type="button" id="tourPrev" class="tour-control-secondary">← Back</button>
+        <span id="tourCount" class="tour-count" aria-live="polite">1 of 4</span>
+        <button type="button" id="tourNext" class="tour-control-primary">Next step →</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- Asset Drilldown Modal Drawer -->
+  <div id="assetModal" class="modal-backdrop">
+    <div class="modal-content">
+      <button id="modalClose" class="modal-close">&times;</button>
+      <h2 style="margin-bottom: 4px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <span id="modalIp">10.10.10.10</span>
+        <span id="modalRole" class="badge badge-plc">PLC</span>
+        <span id="modalConfidence" class="conf-pill conf-high">High</span>
+      </h2>
+      <div style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">
+        <span id="modalVendor">Siemens AG</span> &bull; MAC: <code id="modalMac">00:00:00:00:00:00</code> &bull;
+        Hostname: <span id="modalHostname">None</span>
+      </div>
+
+      <div class="cards-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 20px;">
+        <div class="panel-card" style="padding: 14px;">
+          <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Traffic
+            Sent</div>
+          <div id="modalPacketsSent" style="font-size: 20px; font-weight: 800;">0</div>
+          <div id="modalBytesSent" style="font-size: 12px; color: var(--text-dim);">0 KB</div>
+        </div>
+        <div class="panel-card" style="padding: 14px;">
+          <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Traffic
+            Received</div>
+          <div id="modalPacketsRecv" style="font-size: 20px; font-weight: 800;">0</div>
+          <div id="modalBytesRecv" style="font-size: 12px; color: var(--text-dim);">0 KB</div>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <h4 style="font-size: 13px; color: var(--cyan); margin-bottom: 6px;">Observed TCP Destination Ports</h4>
+        <code id="modalServerPorts" style="font-size: 13px;">None</code>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <h4 style="font-size: 13px; color: var(--cyan); margin-bottom: 6px;">Observed TCP Source Ports</h4>
+        <div id="modalClientPorts" style="font-size: 12px; color: var(--text-muted); word-break: break-all;">None</div>
+      </div>
+
+      <div style="margin-bottom:16px">
+        <h4>Observed UDP Ports</h4>
+        <div id="modalUdpPorts"></div>
+      </div>
+      <div style="margin-bottom:16px">
+        <h4>Protocols Used</h4>
+        <div id="modalProtocols"></div>
+      </div>
+      <div style="margin-bottom: 20px;">
+        <h4 style="font-size: 13px; color: var(--cyan); margin-bottom: 6px;">Connected Communication Partners</h4>
+        <div id="modalPartners" style="font-size: 12px; color: var(--text-muted); word-break: break-all;">None</div>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <h4 style="font-size: 13px; color: var(--cyan); margin-bottom: 6px;">Observation Window</h4>
+        <div style="font-size: 12px; color: var(--text-muted);">
+          First observed: <code id="modalFirstSeen">N/A</code> &bull; Last observed: <code id="modalLastSeen">N/A</code>
+        </div>
+      </div>
+
+      <div class="alert-box" style="margin-bottom: 0;">
+        <div class="alert-title">Supporting Forensic Evidence Trail</div>
+        <ul id="modalEvidence" class="ev-list"></ul>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/topology.js"></script>
+  <script src="/static/js/app.js?v=20261010-guide"></script>
+</body>
+
+</html>

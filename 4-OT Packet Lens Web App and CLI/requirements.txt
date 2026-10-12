@@ -1,0 +1,5 @@
+dpkt>=1.9.8
+
+# Optional: only needed for the independent validation script
+# tests/validate_with_scapy.py
+# scapy>=2.5.0
